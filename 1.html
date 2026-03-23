@@ -1,1 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypertrophy Protocol | 4-Day Split</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base configuration for chart containers to ensure responsiveness and prevent overflow */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
 
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #60a5fa;
+        }
+    </style>
+    <!-- Chosen Palette: Slate (Backgrounds), Blue (Primary Accents/Hypertrophy focus), Amber (Secondary/Nutrition focus) -->
+    <!-- Application Structure Plan: The SPA is structured as a dashboard with top-level navigation. It includes 'Overview' (user profile & schedule), 'Workouts' (tabbed interface for the 4-day split to avoid massive scrolling), 'Progression' (explaining overload and deload concepts), and 'Nutrition' (caloric and supplement guidelines). This structure allows the user to easily find what they need while at the gym (Workouts tab) or when planning at home (Nutrition/Progression tabs). -->
+    <!-- Visualization & Content Choices: 
+         - Workout Tables (Goal: Inform/Organize -> Table -> Easy to read on mobile between sets -> HTML/Tailwind)
+         - Macro Breakdown (Goal: Proportions -> Pie Chart -> Visualize dietary balance -> Chart.js)
+         - Progressive Overload Concept (Goal: Trend -> Line Chart -> Visualize long-term progress and deload phases -> Chart.js)
+         - No SVGs or Mermaid used as requested. Used Unicode icons for visual hierarchy. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-900 text-slate-300 font-sans antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-white tracking-tight">⚙️ Hypertrophy<span class="text-blue-500">Protocol</span></span>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="nav('overview')" id="nav-overview" class="text-slate-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors nav-link">Overview</button>
+                    <button onclick="nav('workouts')" id="nav-workouts" class="text-slate-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors nav-link">Workouts</button>
+                    <button onclick="nav('progression')" id="nav-progression" class="text-slate-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors nav-link">Progression</button>
+                    <button onclick="nav('nutrition')" id="nav-nutrition" class="text-slate-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors nav-link">Nutrition</button>
+                </nav>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="text-slate-300 hover:text-white focus:outline-none">
+                        <span class="text-2xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-800 border-t border-slate-700">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="nav('overview'); toggleMobileMenu()" class="block w-full text-left text-slate-300 hover:text-white hover:bg-slate-700 px-3 py-2 rounded-md text-base font-medium">Overview</button>
+                <button onclick="nav('workouts'); toggleMobileMenu()" class="block w-full text-left text-slate-300 hover:text-white hover:bg-slate-700 px-3 py-2 rounded-md text-base font-medium">Workouts</button>
+                <button onclick="nav('progression'); toggleMobileMenu()" class="block w-full text-left text-slate-300 hover:text-white hover:bg-slate-700 px-3 py-2 rounded-md text-base font-medium">Progression</button>
+                <button onclick="nav('nutrition'); toggleMobileMenu()" class="block w-full text-left text-slate-300 hover:text-white hover:bg-slate-700 px-3 py-2 rounded-md text-base font-medium">Nutrition</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= SECTION: OVERVIEW ================= -->
+        <section id="sec-overview" class="space-y-8 animate-fade-in">
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-extrabold text-white sm:text-4xl">Your Hypertrophy Blueprint</h1>
+                <p class="mt-4 text-lg text-slate-400 max-w-3xl">
+                    This section outlines the foundation of your training plan. Designed specifically for a 15-year-old at 60kg, this Upper/Lower split maximizes muscle protein synthesis by hitting every muscle group twice a week using standard commercial gym equipment (FitX/Fit711 friendly).
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Profile Card -->
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700">
+                    <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">👤 User Profile</h2>
+                    <ul class="space-y-3">
+                        <li class="flex justify-between"><span class="text-slate-400">Age:</span> <span class="font-medium text-white">15 Years</span></li>
+                        <li class="flex justify-between"><span class="text-slate-400">Current Weight:</span> <span class="font-medium text-white">60 kg</span></li>
+                        <li class="flex justify-between"><span class="text-slate-400">Primary Goal:</span> <span class="font-medium text-blue-400">Hypertrophy (Bulking)</span></li>
+                        <li class="flex justify-between"><span class="text-slate-400">Experience:</span> <span class="font-medium text-white">Beginner/Intermediate</span></li>
+                        <li class="flex justify-between"><span class="text-slate-400">Available Supps:</span> <span class="font-medium text-white">Whey Protein, Creatine</span></li>
+                    </ul>
+                </div>
+
+                <!-- Schedule Card -->
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg border border-slate-700">
+                    <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">📅 Weekly Schedule</h2>
+                    <p class="text-sm text-slate-400 mb-4">Consistency is key. Try to stick to this rhythm to allow for proper recovery.</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="bg-slate-700 p-2 rounded text-center"><span class="block text-xs text-slate-400">Monday</span><span class="font-bold text-blue-400">Upper A</span></div>
+                        <div class="bg-slate-700 p-2 rounded text-center"><span class="block text-xs text-slate-400">Tuesday</span><span class="font-bold text-blue-400">Lower A</span></div>
+                        <div class="bg-slate-900 border border-slate-700 p-2 rounded text-center opacity-70"><span class="block text-xs text-slate-500">Wednesday</span><span class="text-slate-400">Rest / Stretch</span></div>
+                        <div class="bg-slate-700 p-2 rounded text-center"><span class="block text-xs text-slate-400">Thursday</span><span class="font-bold text-blue-400">Upper B</span></div>
+                        <div class="bg-slate-700 p-2 rounded text-center"><span class="block text-xs text-slate-400">Friday</span><span class="font-bold text-blue-400">Lower B</span></div>
+                        <div class="bg-slate-900 border border-slate-700 p-2 rounded text-center opacity-70"><span class="block text-xs text-slate-500">Saturday</span><span class="text-slate-400">Rest</span></div>
+                        <div class="bg-slate-900 border border-slate-700 p-2 rounded text-center opacity-70 col-span-2"><span class="block text-xs text-slate-500">Sunday</span><span class="text-slate-400">Active Recovery (Walk/Bike)</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-900/20 border border-blue-800/50 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-blue-400 mb-2">🔥 Warm-up & Cooldown (Do this every session)</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <strong class="text-white">Pre-Workout (5-10 mins):</strong>
+                        <ul class="list-disc list-inside text-sm text-slate-300 mt-2 space-y-1">
+                            <li>5 mins light cardio (Treadmill walk on incline, or Stairmaster). Get the blood flowing.</li>
+                            <li>Dynamic stretching (Arm circles, torso twists for Upper; Leg swings, bodyweight squats for Lower).</li>
+                            <li>1-2 warm-up sets with an empty bar or light weight for your first compound exercise.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong class="text-white">Post-Workout (5 mins):</strong>
+                        <ul class="list-disc list-inside text-sm text-slate-300 mt-2 space-y-1">
+                            <li>Let your heart rate down slowly.</li>
+                            <li>Static stretching of the muscles worked (hold stretches for 20-30 seconds).</li>
+                            <li>Hydrate and prepare for your post-workout meal.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION: WORKOUTS ================= -->
+        <section id="sec-workouts" class="hidden space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-white">The Routines</h2>
+                <p class="text-slate-400 mt-2">Here are your specific workouts. Navigate through the days using the tabs below. The rep range is primarily 8-12, the "hypertrophy sweet spot." Focus on controlling the weight, especially on the way down (eccentric phase).</p>
+            </div>
+
+            <!-- Workout Tabs -->
+            <div class="flex overflow-x-auto border-b border-slate-700 mb-4">
+                <button onclick="showWorkout('upperA')" id="btn-upperA" class="px-4 py-2 text-sm font-medium text-slate-300 whitespace-nowrap tab-active transition-colors">Upper A (Horizontal)</button>
+                <button onclick="showWorkout('lowerA')" id="btn-lowerA" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 whitespace-nowrap transition-colors">Lower A (Squat Focus)</button>
+                <button onclick="showWorkout('upperB')" id="btn-upperB" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 whitespace-nowrap transition-colors">Upper B (Vertical)</button>
+                <button onclick="showWorkout('lowerB')" id="btn-lowerB" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 whitespace-nowrap transition-colors">Lower B (Hinge Focus)</button>
+            </div>
+
+            <!-- Upper A -->
+            <div id="workout-upperA" class="workout-view block bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+                <div class="p-4 bg-slate-700/50 border-b border-slate-700">
+                    <h3 class="text-xl font-bold text-white">Upper Body A</h3>
+                    <p class="text-sm text-slate-400">Focus: Chest, Back thickness, Arms.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-900/50 uppercase tracking-wider text-slate-400">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Exercise</th>
+                                <th class="px-4 py-3 font-medium">Sets</th>
+                                <th class="px-4 py-3 font-medium">Reps</th>
+                                <th class="px-4 py-3 font-medium">Rest</th>
+                                <th class="px-4 py-3 font-medium">Form Cues</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700">
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">1. Bench Press (Barbell or Dumbbell)</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">8-10</td>
+                                <td class="px-4 py-4">2-3 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Keep shoulders retracted, feet planted. Lower bar to mid-chest.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">2. Seated Cable Row</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">8-12</td>
+                                <td class="px-4 py-4">2 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Pull to your belly button. Squeeze shoulder blades together. Don't use momentum.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">3. Incline Dumbbell Press</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">8-12</td>
+                                <td class="px-4 py-4">2 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Bench at ~30 degrees. Focus on upper chest stretch at the bottom.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">4. Lat Pulldown</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">10-12</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Slight lean back. Pull bar to upper chest. Control the weight going up.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-slate-300">5. Triceps Rope Pushdown</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Elbows glued to your sides. Spread the rope at the bottom.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-slate-300">6. Dumbbell Bicep Curl</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Keep elbows fixed. Squeeze at the top. Control the descent.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Lower A -->
+            <div id="workout-lowerA" class="workout-view hidden bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+                <div class="p-4 bg-slate-700/50 border-b border-slate-700">
+                    <h3 class="text-xl font-bold text-white">Lower Body A</h3>
+                    <p class="text-sm text-slate-400">Focus: Quads, Calves.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-900/50 uppercase tracking-wider text-slate-400">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Exercise</th>
+                                <th class="px-4 py-3 font-medium">Sets</th>
+                                <th class="px-4 py-3 font-medium">Reps</th>
+                                <th class="px-4 py-3 font-medium">Rest</th>
+                                <th class="px-4 py-3 font-medium">Form Cues</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700">
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">1. Barbell Squat (or Hack Squat)</td>
+                                <td class="px-4 py-4">3-4</td>
+                                <td class="px-4 py-4">6-8</td>
+                                <td class="px-4 py-4">3 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Keep chest up, brace core. Go as deep as mobility allows safely.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">2. Leg Press</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">10-12</td>
+                                <td class="px-4 py-4">2 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Feet shoulder-width. Don't lock out knees at the top.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">3. Lying Leg Curl</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">10-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Keep hips pressed into the pad. Squeeze hamstrings hard.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">4. Leg Extension</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Hold for 1 second at the top of the movement. Burnout the quads.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-slate-300">5. Standing Calf Raise (Machine)</td>
+                                <td class="px-4 py-4">4</td>
+                                <td class="px-4 py-4">12-20</td>
+                                <td class="px-4 py-4">60 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Full stretch at the bottom, pause. Explode up, pause.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Upper B -->
+            <div id="workout-upperB" class="workout-view hidden bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+                <div class="p-4 bg-slate-700/50 border-b border-slate-700">
+                    <h3 class="text-xl font-bold text-white">Upper Body B</h3>
+                    <p class="text-sm text-slate-400">Focus: Shoulders, Back width, Arms.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-900/50 uppercase tracking-wider text-slate-400">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Exercise</th>
+                                <th class="px-4 py-3 font-medium">Sets</th>
+                                <th class="px-4 py-3 font-medium">Reps</th>
+                                <th class="px-4 py-3 font-medium">Rest</th>
+                                <th class="px-4 py-3 font-medium">Form Cues</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700">
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">1. Overhead Press (Dumbbell or Machine)</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">8-10</td>
+                                <td class="px-4 py-4">2-3 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Keep core tight. Press straight up, don't over-arch lower back.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">2. Pull-ups (Assisted Machine if needed)</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">AMRAP (aim 8-10)</td>
+                                <td class="px-4 py-4">2 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Full extension at bottom. Pull chin over bar. Use assistance machine to stay in rep range.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">3. Machine Chest Fly (Pec Deck)</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Focus on squeezing chest together, imagine hugging a tree.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">4. Cable Face Pulls</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">15-20</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Pull rope to forehead. Keep elbows high. Crucial for shoulder health.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-slate-300">5. Overhead Cable Triceps Ext.</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Excellent for the long head of the tricep. Keep upper arm steady.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-slate-300">6. Cable Hammer Curls (Rope)</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Neutral grip. Builds brachialis to push biceps up.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Lower B -->
+            <div id="workout-lowerB" class="workout-view hidden bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+                <div class="p-4 bg-slate-700/50 border-b border-slate-700">
+                    <h3 class="text-xl font-bold text-white">Lower Body B</h3>
+                    <p class="text-sm text-slate-400">Focus: Hamstrings, Glutes.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-slate-900/50 uppercase tracking-wider text-slate-400">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Exercise</th>
+                                <th class="px-4 py-3 font-medium">Sets</th>
+                                <th class="px-4 py-3 font-medium">Reps</th>
+                                <th class="px-4 py-3 font-medium">Rest</th>
+                                <th class="px-4 py-3 font-medium">Form Cues</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700">
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">1. Romanian Deadlift (RDL - Barbell or DB)</td>
+                                <td class="px-4 py-4">3-4</td>
+                                <td class="px-4 py-4">8-10</td>
+                                <td class="px-4 py-4">3 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Push hips back, slight knee bend. Keep bar close to legs. Neutral spine!</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-blue-400">2. Bulgarian Split Squat (or Walking Lunges)</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">8-12 /leg</td>
+                                <td class="px-4 py-4">2 min</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Use dumbbells. Lean slightly forward for more glute focus.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">3. Seated Leg Curl</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">10-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Control the eccentric (upward) phase. Full stretch.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-white">4. Leg Extension</td>
+                                <td class="px-4 py-4">3</td>
+                                <td class="px-4 py-4">12-15</td>
+                                <td class="px-4 py-4">90 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Light weight, focus on feeling the quad burn at the end of the workout.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-slate-300">5. Seated Calf Raise</td>
+                                <td class="px-4 py-4">4</td>
+                                <td class="px-4 py-4">15-20</td>
+                                <td class="px-4 py-4">60 sec</td>
+                                <td class="px-4 py-4 text-slate-400 whitespace-normal">Focuses on the soleus muscle. High reps, deep stretch.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECTION: PROGRESSION & DELOAD ================= -->
+        <section id="sec-progression" class="hidden space-y-8">
+            <div class="text-center md:text-left">
+                <h2 class="text-2xl font-bold text-white">Progressive Overload & Deloading</h2>
+                <p class="text-slate-400 mt-2 max-w-3xl">Muscle growth requires adaptation. You must force your body to grow by gradually increasing the stimulus. This section explains how, and when to back off to prevent overtraining.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                
+                <!-- Theory Text -->
+                <div class="space-y-6">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-xl font-bold text-white mb-3 text-blue-400">📈 How to Progress</h3>
+                        <p class="text-slate-300 text-sm mb-4">Don't just lift the same weight forever. Use the <strong>Double Progression Method</strong>:</p>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-slate-400">
+                            <li>Pick a weight where you can hit the lower end of the rep range (e.g., 8 reps) with good form.</li>
+                            <li>Stick with that weight until you can hit the upper end of the rep range (e.g., 12 reps) for all sets.</li>
+                            <li>Once you hit 3 sets of 12, <strong>increase the weight slightly</strong> (e.g., 2.5kg) next time. Your reps will likely drop back down to 8-9.</li>
+                            <li>Repeat the process.</li>
+                        </ol>
+                        <p class="mt-4 text-xs text-slate-500 italic">Always prioritize form over adding weight. A poorly executed heavy lift builds less muscle and risks injury.</p>
+                    </div>
+
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 border-l-4 border-l-amber-500">
+                        <h3 class="text-xl font-bold text-white mb-3">📉 The Deload Week</h3>
+                        <p class="text-slate-300 text-sm mb-2">As a beginner/intermediate, you can't push 100% every week indefinitely. Fatigue accumulates in your nervous system and joints.</p>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-slate-400">
+                            <li><strong>When:</strong> Every 4 to 8 weeks, depending on how exhausted you feel. If your lifts stall or joints ache, it's time.</li>
+                            <li><strong>How:</strong> Drop the weights by 10-20% and do 1 less set per exercise. The goal is active recovery, not muscle building.</li>
+                            <li><strong>Why:</strong> It dissipates fatigue, allowing you to return the following week stronger and ready to grow.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Progression Chart -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex flex-col items-center justify-center">
+                    <h3 class="text-lg font-bold text-white mb-2 text-center w-full">Concept: Volume/Load over Time</h3>
+                    <p class="text-xs text-slate-400 text-center mb-4">Notice the steady increase followed by a deliberate drop (deload) to reset fatigue.</p>
+                    <div class="chart-container w-full">
+                        <canvas id="progressionChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= SECTION: NUTRITION ================= -->
+        <section id="sec-nutrition" class="hidden space-y-8">
+            <div class="text-center md:text-left">
+                <h2 class="text-2xl font-bold text-white">Fuel for Hypertrophy</h2>
+                <p class="text-slate-400 mt-2 max-w-3xl">At 15 years old and 60kg, your body is primed for growth. To build muscle, you MUST eat in a caloric surplus (more calories than you burn) and consume enough protein. You cannot build a house without bricks.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Calorie Target -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 lg:col-span-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2 border-b border-slate-700 pb-2">🎯 Daily Targets</h3>
+                        <p class="text-sm text-slate-400 mb-6">Estimated for a 60kg active teenager looking to bulk.</p>
+                        
+                        <div class="text-center mb-6">
+                            <span class="block text-4xl font-extrabold text-amber-500">~2,800</span>
+                            <span class="text-slate-400 text-sm uppercase tracking-wide">Calories / Day</span>
+                        </div>
+
+                        <ul class="space-y-4 text-sm">
+                            <li class="bg-blue-900/30 p-3 rounded flex justify-between items-center">
+                                <span class="font-bold text-blue-400">Protein (Muscle building)</span>
+                                <span class="text-white font-mono">120g</span>
+                            </li>
+                            <li class="bg-amber-900/20 p-3 rounded flex justify-between items-center">
+                                <span class="font-bold text-amber-500">Fats (Hormone health)</span>
+                                <span class="text-white font-mono">60g</span>
+                            </li>
+                            <li class="bg-slate-700/50 p-3 rounded flex justify-between items-center">
+                                <span class="font-bold text-slate-300">Carbs (Energy for gym)</span>
+                                <span class="text-white font-mono">440g</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 text-center">Aim to gain 1-2 kg per month. If you aren't gaining weight after 2 weeks, increase calories by 200.</p>
+                </div>
+
+                <!-- Macro Chart -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 lg:col-span-1 flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-white mb-4 w-full text-center">Macro Breakdown</h3>
+                    <div class="chart-container w-full" style="height: 250px;">
+                        <canvas id="macroChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 text-center mt-4">Carbs are your primary energy source for high-intensity training. Don't fear them while bulking!</p>
+                </div>
+
+                <!-- Supplements -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 lg:col-span-1">
+                    <h3 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">💊 Supplements</h3>
+                    <p class="text-sm text-slate-300 mb-4">Supplements are just that—supplemental to food. However, the ones you have are the most effective.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-900/50 p-4 rounded border border-slate-700">
+                            <h4 class="font-bold text-blue-400 flex items-center">🥛 Whey Protein</h4>
+                            <p class="text-xs text-slate-400 mt-1"><strong>Why:</strong> Convenient, fast-absorbing source of high-quality protein to hit your 120g target.</p>
+                            <p class="text-xs text-slate-300 mt-2"><strong>How to use:</strong> 1 scoop (approx 25g protein) mixed with water or milk. Best taken post-workout or as a snack to reach daily goals.</p>
+                        </div>
+
+                        <div class="bg-slate-900/50 p-4 rounded border border-slate-700">
+                            <h4 class="font-bold text-amber-500 flex items-center">⚡ Creatine Monohydrate</h4>
+                            <p class="text-xs text-slate-400 mt-1"><strong>Why:</strong> The most researched supplement. It helps your muscles produce energy during heavy lifting, allowing for extra reps and better strength gains.</p>
+                            <p class="text-xs text-slate-300 mt-2"><strong>How to use:</strong> Take <strong>3 to 5 grams every single day</strong> (even on rest days). Mix it with water or your protein shake. Timing doesn't matter much, consistency does.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                 <h3 class="text-lg font-bold text-white mb-2">Practical Food Ideas (Realistic for 15yo)</h3>
+                 <p class="text-sm text-slate-400 mb-4">You likely eat what your parents cook, which is fine! Just focus on portion sizes and adding healthy snacks.</p>
+                 <div class="grid md:grid-cols-2 gap-4 text-sm">
+                     <ul class="list-disc list-inside space-y-1 text-slate-300">
+                         <li><strong>Breakfast:</strong> Large bowl of oatmeal with milk, a scoop of protein powder, and a banana.</li>
+                         <li><strong>School Snack:</strong> Peanut butter sandwich on whole wheat bread, or a handful of nuts.</li>
+                     </ul>
+                     <ul class="list-disc list-inside space-y-1 text-slate-300">
+                         <li><strong>Lunch:</strong> Whatever is served, ask for double meat if possible. Add a side of rice or pasta.</li>
+                         <li><strong>Dinner:</strong> Mom/Dad's cooking. Eat until full, prioritize protein on the plate. Drink a glass of milk before bed.</li>
+                     </ul>
+                 </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 mt-12 py-6 text-center text-slate-500 text-sm">
+        <p>Stay consistent. Eat big. Lift with good form. Sleep 8 hours.</p>
+    </footer>
+
+    <script>
+        // --- Navigation Logic ---
+        function nav(sectionId) {
+            // Hide all sections
+            const sections = ['overview', 'workouts', 'progression', 'nutrition'];
+            sections.forEach(id => {
+                document.getElementById('sec-' + id).classList.add('hidden');
+                document.getElementById('nav-' + id).classList.remove('text-white', 'bg-slate-700');
+                document.getElementById('nav-' + id).classList.add('text-slate-300');
+            });
+
+            // Show selected section
+            document.getElementById('sec-' + sectionId).classList.remove('hidden');
+            
+            // Highlight nav button (desktop)
+            document.getElementById('nav-' + sectionId).classList.add('text-white');
+            document.getElementById('nav-' + sectionId).classList.remove('text-slate-300');
+
+            // Render charts if needed (to ensure they render correctly when visible)
+            if (sectionId === 'nutrition' && !window.macroChartRendered) {
+                initMacroChart();
+                window.macroChartRendered = true;
+            }
+            if (sectionId === 'progression' && !window.progChartRendered) {
+                initProgressionChart();
+                window.progChartRendered = true;
+            }
+        }
+
+        // --- Sub-Navigation for Workouts Tab ---
+        function showWorkout(day) {
+            const days = ['upperA', 'lowerA', 'upperB', 'lowerB'];
+            days.forEach(d => {
+                document.getElementById('workout-' + d).classList.add('hidden');
+                document.getElementById('btn-' + d).classList.remove('tab-active', 'text-slate-200');
+                document.getElementById('btn-' + d).classList.add('text-slate-400');
+            });
+
+            document.getElementById('workout-' + day).classList.remove('hidden');
+            document.getElementById('btn-' + day).classList.add('tab-active', 'text-slate-200');
+            document.getElementById('btn-' + day).classList.remove('text-slate-400');
+        }
+
+        // --- Mobile Menu Toggle ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        }
+
+        // --- Chart.js Implementations ---
+        
+        // Setup Chart defaults for dark theme
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+
+        function initMacroChart() {
+            const ctx = document.getElementById('macroChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Protein (120g)', 'Fats (60g)', 'Carbs (440g)'],
+                    datasets: [{
+                        data: [120 * 4, 60 * 9, 440 * 4], // Data in calories for accurate visual proportion
+                        backgroundColor: [
+                            '#3b82f6', // Blue-500
+                            '#f59e0b', // Amber-500
+                            '#475569'  // Slate-600
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        // Calculate percentage based on calories
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((context.parsed / total) * 100) + '%';
+                                        label += percentage + ' of total calories';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function initProgressionChart() {
+            const ctx = document.getElementById('progressionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5 (Deload)', 'Wk 6', 'Wk 7', 'Wk 8'],
+                    datasets: [{
+                        label: 'Working Weight / Stimulus',
+                        data: [100, 105, 110, 115, 90, 118, 122, 128], // Conceptual data
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#f59e0b',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#f59e0b',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: '#334155', // Slate-700
+                                drawBorder: false,
+                            },
+                            ticks: {
+                                display: false // Hide numbers as it's conceptual
+                            },
+                            title: {
+                                display: true,
+                                text: 'Intensity / Load',
+                                color: '#cbd5e1'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if(context.dataIndex === 4) return 'Deload Week: Drop weight to recover';
+                                    return 'Progressing Load';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize default view
+        nav('overview');
+    </script>
+</body>
+</html>
